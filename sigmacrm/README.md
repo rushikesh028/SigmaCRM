@@ -84,6 +84,3 @@ sigmacrm/
 - **Admin** — full access including Users menu
 - **Employee** — all CRM modules except user management
 
-## License
-
-MIT — use freely for learning and production.
