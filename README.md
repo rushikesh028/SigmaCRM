@@ -24,7 +24,6 @@ python manage.py createsuperuser   # or use seeded admin/admin123 after seed
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/
 
 **Demo logins (after seeding):**
 - Admin: `admin` / `admin123`
