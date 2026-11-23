@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Deals — SigmaCRM{% endblock %}
+{% block page_title %}Deals Pipeline{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'deal_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Deal</a>
+{% endblock %}
+{% block content %}
+<div class="kanban-board">
+    {% for stage_key, stage_label in stage_choices %}
+    <div class="kanban-column" data-stage="{{ stage_key }}">
+        <div class="kanban-column-header">
+            <span>{{ stage_label }}</span>
+            <span class="badge rounded-pill bg-secondary">
+                {% if stage_key == 'new' %}{{ deals_by_stage.new|length }}
+                {% elif stage_key == 'in_progress' %}{{ deals_by_stage.in_progress|length }}
+                {% elif stage_key == 'proposal' %}{{ deals_by_stage.proposal|length }}
+                {% elif stage_key == 'negotiation' %}{{ deals_by_stage.negotiation|length }}
+                {% elif stage_key == 'won' %}{{ deals_by_stage.won|length }}
+                {% elif stage_key == 'lost' %}{{ deals_by_stage.lost|length }}
+                {% endif %}
+            </span>
+        </div>
+        <div class="kanban-cards">
+            {% if stage_key == 'new' %}
+                {% for deal in deals_by_stage.new %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% elif stage_key == 'in_progress' %}
+                {% for deal in deals_by_stage.in_progress %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% elif stage_key == 'proposal' %}
+                {% for deal in deals_by_stage.proposal %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% elif stage_key == 'negotiation' %}
+                {% for deal in deals_by_stage.negotiation %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% elif stage_key == 'won' %}
+                {% for deal in deals_by_stage.won %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% elif stage_key == 'lost' %}
+                {% for deal in deals_by_stage.lost %}
+                {% include "partials/deal_card.html" %}
+                {% empty %}<div class="text-muted small text-center py-3">No deals</div>{% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

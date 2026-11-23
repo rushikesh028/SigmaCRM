@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Reports — SigmaCRM{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="stat-card"><p class="stat-label">Conversion Rate</p><p class="stat-value">{{ conversion_rate }}%</p></div></div>
+    <div class="col-md-3"><div class="stat-card"><p class="stat-label">Total Revenue</p><p class="stat-value">${{ revenue|floatformat:0 }}</p></div></div>
+    <div class="col-md-3"><div class="stat-card"><p class="stat-label">Deals Won</p><p class="stat-value">{{ won }}</p></div></div>
+    <div class="col-md-3"><div class="stat-card"><p class="stat-label">Deals Lost</p><p class="stat-value">{{ lost }}</p></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-lg-6"><div class="card-panel"><div class="card-header">Lead Sources</div><div class="card-body"><canvas id="sourceChart" height="200"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card-panel"><div class="card-header">Conversion Funnel</div><div class="card-body"><canvas id="funnelChart" height="200"></canvas></div></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-lg-6"><div class="card-panel"><div class="card-header">Monthly Sales Revenue</div><div class="card-body"><canvas id="monthChart" height="200"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="card-panel"><div class="card-header">Employee Performance (Leads Assigned)</div><div class="card-body"><canvas id="empChart" height="200"></canvas></div></div></div>
+</div>
+<div class="row g-3">
+    <div class="col-12"><div class="card-panel"><div class="card-header">Employee Revenue (Won Deals)</div><div class="card-body"><canvas id="empRevChart" height="120"></canvas></div></div></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const colors = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899','#14b8a6'];
+new Chart(document.getElementById('sourceChart'), {
+    type: 'pie',
+    data: { labels: {{ source_labels|safe }}, datasets: [{ data: {{ source_data|safe }}, backgroundColor: colors }] },
+    options: { plugins: { legend: { position: 'bottom' } } }
+});
+new Chart(document.getElementById('funnelChart'), {
+    type: 'bar',
+    data: { labels: {{ funnel_labels|safe }}, datasets: [{ label: 'Leads', data: {{ funnel_data|safe }}, backgroundColor: colors }] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+});
+new Chart(document.getElementById('monthChart'), {
+    type: 'line',
+    data: { labels: {{ month_labels|safe }}, datasets: [{ label: 'Revenue', data: {{ month_revenue|safe }}, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3 }] },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+new Chart(document.getElementById('empChart'), {
+    type: 'bar',
+    data: { labels: {{ emp_labels|safe }}, datasets: [{ label: 'Leads', data: {{ emp_leads|safe }}, backgroundColor: '#8b5cf6' }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+new Chart(document.getElementById('empRevChart'), {
+    type: 'bar',
+    data: { labels: {{ emp_labels|safe }}, datasets: [{ label: 'Revenue', data: {{ emp_revenue|safe }}, backgroundColor: '#10b981' }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

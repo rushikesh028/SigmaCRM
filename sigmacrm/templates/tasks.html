@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Tasks — SigmaCRM{% endblock %}
+{% block page_title %}Tasks{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'task_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Task</a>
+{% endblock %}
+{% block content %}
+<div class="card-panel mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    {% for v,l in status_choices %}<option value="{{ v }}" {% if status_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All</option>
+                    {% for v,l in priority_choices %}<option value="{{ v }}" {% if priority_filter == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Show</label>
+                <select name="show" class="form-select">
+                    <option value="all" {% if show == 'all' %}selected{% endif %}>All</option>
+                    <option value="mine" {% if show == 'mine' %}selected{% endif %}>My Tasks</option>
+                    <option value="overdue" {% if show == 'overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="card-panel">
+    <div class="table-responsive">
+        <table class="table table-modern table-hover mb-0">
+            <thead>
+                <tr><th>Title</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Due</th><th>Related</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for t in tasks %}
+                <tr class="{% if t.is_overdue %}table-danger{% endif %}">
+                    <td class="fw-semibold">{{ t.title }}</td>
+                    <td><span class="badge badge-status badge-{{ t.priority }}">{{ t.get_priority_display }}</span></td>
+                    <td><span class="badge badge-status badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+                    <td>{{ t.assigned_to.get_full_name|default:t.assigned_to.username|default:"—" }}</td>
+                    <td>
+                        {% if t.due_date %}
+                        {{ t.due_date|date:"M d, Y H:i" }}
+                        {% if t.is_overdue %}<span class="badge bg-danger ms-1">Overdue</span>{% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if t.lead %}<a href="{% url 'lead_detail' t.lead.pk %}">{{ t.lead.full_name }}</a>{% endif %}
+                        {% if t.deal %}{{ t.deal.title }}{% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        <form method="post" action="{% url 'task_toggle' t.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-success" title="Toggle complete"><i class="bi bi-check2"></i></button></form>
+                        <a href="{% url 'task_edit' t.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <form method="post" action="{% url 'task_delete' t.pk %}" class="d-inline" data-confirm="Delete task?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7"><div class="empty-state"><i class="bi bi-check2-square"></i><p class="mt-2">No tasks found</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — SigmaCRM{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people"></i></div>
+            <p class="stat-value">{{ total_leads }}</p>
+            <p class="stat-label">Total Leads</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-info bg-opacity-10 text-info"><i class="bi bi-person-plus"></i></div>
+            <p class="stat-value">{{ new_leads }}</p>
+            <p class="stat-label">New Leads</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-briefcase"></i></div>
+            <p class="stat-value">{{ open_deals }}</p>
+            <p class="stat-label">Open Deals</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-trophy"></i></div>
+            <p class="stat-value">{{ won_deals }}</p>
+            <p class="stat-label">Won Deals</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-x-circle"></i></div>
+            <p class="stat-value">{{ lost_deals }}</p>
+            <p class="stat-label">Lost Deals</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-currency-dollar"></i></div>
+            <p class="stat-value">${{ total_revenue|floatformat:0 }}</p>
+            <p class="stat-label">Revenue · {{ conversion_rate }}% conv.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card-panel h-100">
+            <div class="card-header">Leads Over Time (30 days)</div>
+            <div class="card-body"><canvas id="leadsChart" height="120"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-panel h-100">
+            <div class="card-header">Leads by Source</div>
+            <div class="card-body"><canvas id="sourceChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card-panel h-100">
+            <div class="card-header">Deals by Stage</div>
+            <div class="card-body"><canvas id="stageChart" height="200"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-panel h-100">
+            <div class="card-header">Recent Activities</div>
+            <div class="card-body p-0">
+                {% if recent_activities %}
+                <ul class="list-group list-group-flush">
+                    {% for a in recent_activities %}
+                    <li class="list-group-item px-3 py-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-medium">{{ a.subject|truncatechars:40 }}</span>
+                            <span class="text-muted-sm">{{ a.created_at|timesince }} ago</span>
+                        </div>
+                        <small class="text-muted">{{ a.get_activity_type_display }} · {{ a.performed_by|default:"System" }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-4"><i class="bi bi-activity"></i><p class="mt-2 mb-0">No activities yet</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card-panel h-100">
+            <div class="card-header">
+                Upcoming Tasks
+                {% if overdue_tasks %}<span class="badge bg-danger">{{ overdue_tasks }} overdue</span>{% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_tasks %}
+                <ul class="list-group list-group-flush">
+                    {% for t in upcoming_tasks %}
+                    <li class="list-group-item px-3 py-2">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="fw-medium">{{ t.title|truncatechars:35 }}</span>
+                                <br><small class="text-muted">{{ t.assigned_to|default:"Unassigned" }} · Due {{ t.due_date|date:"M d" }}</small>
+                            </div>
+                            <span class="badge badge-status badge-{{ t.priority }}">{{ t.get_priority_display }}</span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="empty-state py-4"><i class="bi bi-check2-square"></i><p class="mt-2 mb-0">No upcoming tasks</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const chartColors = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899'];
+new Chart(document.getElementById('leadsChart'), {
+    type: 'line',
+    data: {
+        labels: {{ leads_labels|safe }},
+        datasets: [{
+            label: 'Leads',
+            data: {{ leads_data|safe }},
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+new Chart(document.getElementById('sourceChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ source_labels|safe }},
+        datasets: [{ data: {{ source_data|safe }}, backgroundColor: chartColors }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+});
+new Chart(document.getElementById('stageChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ stage_labels|safe }},
+        datasets: [{ label: 'Deals', data: {{ stage_counts|safe }}, backgroundColor: chartColors }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Contacts — SigmaCRM{% endblock %}
+{% block page_title %}Contacts{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'contact_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Contact</a>
+{% endblock %}
+{% block content %}
+<div class="card-panel mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-6">
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search contacts...">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{% url 'contacts' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="card-panel">
+    <div class="table-responsive">
+        <table class="table table-modern table-hover mb-0">
+            <thead>
+                <tr><th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Title</th><th>Created</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for c in contacts %}
+                <tr>
+                    <td class="fw-semibold">{{ c.full_name }}</td>
+                    <td>{{ c.company|default:"—" }}</td>
+                    <td>{{ c.email }}</td>
+                    <td>{{ c.phone|default:"—" }}</td>
+                    <td>{{ c.job_title|default:"—" }}</td>
+                    <td>{{ c.created_at|date:"M d, Y" }}</td>
+                    <td class="text-nowrap">
+                        <a href="{% url 'contact_edit' c.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        <form method="post" action="{% url 'contact_delete' c.pk %}" class="d-inline" data-confirm="Delete this contact?">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7"><div class="empty-state"><i class="bi bi-person-rolodex"></i><p class="mt-2">No contacts found</p></div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if contacts.has_other_pages %}
+    <div class="card-body border-top d-flex justify-content-center">
+        <ul class="pagination mb-0">
+            {% if contacts.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ contacts.previous_page_number }}&q={{ q }}">Prev</a></li>{% endif %}
+            <li class="page-item active"><span class="page-link">{{ contacts.number }} / {{ contacts.paginator.num_pages }}</span></li>
+            {% if contacts.has_next %}<li class="page-item"><a class="page-link" href="?page={{ contacts.next_page_number }}&q={{ q }}">Next</a></li>{% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
